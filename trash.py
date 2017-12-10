@@ -1,6 +1,7 @@
 
 
 import random
+import numpy
 
 
 def generate_random_data(number_of_variables, number_of_patients):
@@ -47,8 +48,11 @@ def generate_random_data(number_of_variables, number_of_patients):
 
 def get_correlation_matrix(input_data_file):
 	##
-	## TODO : get correlation between each pairs of variables
-	##
+	## -> Compute and return the corrlation matrix
+	## for the variables in input_data_file.
+	## -> Assume every scalar could be cast to float 
+	## -> the variables in the correlation matrix are in
+	## the same order as the variables in the header
 
 	## parameters
 	variables_to_values = {}
@@ -74,18 +78,26 @@ def get_correlation_matrix(input_data_file):
 			line_in_array = line.split(",")
 			index = 0
 			for scalar in line_in_array:
-				variables_to_values[index_to_variables[index]].append(scalar)
+				variables_to_values[index_to_variables[index]].append(float(scalar))
 				index += 1
 
 		cmpt += 1
 	input_data.close
 
-	## Compute correlation
-	## >TODO<
+	## Compute correlation matrix
+	variables_matrix = []
+	index = 0
+	for key in variables_to_values.keys():
+		variables_matrix.append([])
+		variables_matrix[index] = variables_to_values[index_to_variables[index]]
+		index += 1 
+
+	correlation_matrix = numpy.corrcoef(variables_matrix)
+	return correlation_matrix
 
 
 ### TEST SPACE ###
-generate_random_data(10,5)
+generate_random_data(5,4)
 get_correlation_matrix("trash_data.csv")
 
 
