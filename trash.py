@@ -103,6 +103,10 @@ get_correlation_matrix("trash_data.csv")
 
 
 
+from numpy import genfromtxt
+my_data = genfromtxt('trash_data.csv', delimiter=',')
+print my_data[1:]
 
-
-
+from PIL import Image
+im = Image.fromarray(my_data[1:])
+im.save("your_file.jpeg")
