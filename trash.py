@@ -7,6 +7,17 @@ import png
 from sklearn import preprocessing
 
 
+
+## TODO
+##
+## => Function to map scaled values to [0,255] interval
+##
+##
+##
+##
+
+
+
 def generate_random_data(number_of_variables, number_of_patients):
 	##
 	## create a csv file with
@@ -159,7 +170,7 @@ def normalize_data(data_file):
 
 
 ### TEST SPACE ###
-generate_random_data(4,4)
+generate_random_data(1400,1400)
 corr_mat = get_correlation_matrix("trash_data.csv")
 create_image_from_csv("trash_data.csv", "machin.png")
 normalize_data("trash_data.csv")
