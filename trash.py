@@ -4,6 +4,7 @@ import random
 import numpy
 from numpy import genfromtxt
 import png
+from sklearn import preprocessing
 
 
 def generate_random_data(number_of_variables, number_of_patients):
@@ -55,6 +56,7 @@ def get_correlation_matrix(input_data_file):
 	## -> Assume every scalar could be cast to float 
 	## -> the variables in the correlation matrix are in
 	## the same order as the variables in the header
+	##
 
 	## parameters
 	variables_to_values = {}
@@ -117,11 +119,47 @@ def create_image_from_csv(data_file, image_file):
 
 
 
+def normalize_data(data_file):
+	##
+	## -> Scale (centrer normer) the data
+	## and write the data in new _scaled data
+	## file
+	##
+
+	## Get the header
+	cmpt = 0
+	header = ""
+	input_data = open(data_file, "r")
+	for line in input_data:
+		line = line.replace("\n", "")
+		if(cmpt == 0):
+			header = line
+		cmpt += 1
+	input_data.close()
+
+	## Get and scale data
+	data = genfromtxt(data_file, delimiter=',')
+	data_scaled = preprocessing.scale(data[1:])
+
+	## Write new file
+	output_file_name = data_file.split(".")
+	output_file_name = output_file_name[0]+"_scaled.csv"
+
+	output_data = open(output_file_name, "w")
+	output_data.write(header+"\n")
+
+	for vector in data_scaled:
+		vector_to_write = ""
+		for scalar in vector:
+			vector_to_write += str(scalar)+","
+		vector_to_write = vector_to_write[:-1]
+		output_data.write(vector_to_write+"\n")
+	output_data.close()
+
+
+
 ### TEST SPACE ###
-generate_random_data(80,125)
-get_correlation_matrix("trash_data.csv")
+generate_random_data(4,4)
+corr_mat = get_correlation_matrix("trash_data.csv")
 create_image_from_csv("trash_data.csv", "machin.png")
-
-
-
-
+normalize_data("trash_data.csv")
