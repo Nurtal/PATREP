@@ -2,6 +2,8 @@
 
 import random
 import numpy
+from numpy import genfromtxt
+import png
 
 
 def generate_random_data(number_of_variables, number_of_patients):
@@ -96,17 +98,30 @@ def get_correlation_matrix(input_data_file):
 	return correlation_matrix
 
 
+def create_image_from_csv(data_file, image_file):
+	##
+	## -> Create an image from a csv file,
+	## - the image have to be png
+	## - the values in data_file have to be integer between 0 and 255
+	## - drop the header in data_file
+	##
+
+	data = genfromtxt(data_file, delimiter=',')
+	data = data[1:] ## drop the header
+	matrix = []
+	for vector in data:
+		matrix.append(list(vector))
+
+	## save the image
+	png.from_array(matrix, 'L').save(image_file)
+
+
+
 ### TEST SPACE ###
-generate_random_data(5,4)
+generate_random_data(80,125)
 get_correlation_matrix("trash_data.csv")
+create_image_from_csv("trash_data.csv", "machin.png")
 
 
 
 
-from numpy import genfromtxt
-my_data = genfromtxt('trash_data.csv', delimiter=',')
-print my_data[1:]
-
-from PIL import Image
-im = Image.fromarray(my_data[1:])
-im.save("your_file.jpeg")
