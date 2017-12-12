@@ -169,8 +169,81 @@ def normalize_data(data_file):
 
 
 
+
+def simple_conversion_to_img_matrix(data_file):
+	##
+	##
+	## [IN PROGRESS]
+	##
+	## -> very basic conversion from
+	##  normalized data to a 0 - 255 ranged
+	##  values.
+	##
+	## -> for each variables get the min
+	## and max values, then map each scalar
+	## of the variables to [0-255]
+	##
+	## => TODO:
+	##	- write code
+	##	- find a cool name for the function
+	##
+
+
+	## init structures
+	variables_to_maxmin = {}
+	index_to_variables = {}
+	variables_to_values = {}
+
+	## Read input data
+	## - fill the structures
+	## - find min and max values for each variables
+	input_data = open(data_file, "r")
+	cmpt = 0
+	for line in input_data:
+
+		line = line.replace("\n", "")
+
+		## Parse the header
+		if(cmpt == 0):
+
+			line_in_array = line.split(",")
+			index = 0
+			for variable in line_in_array:
+				index_to_variables[index] = variable
+				variables_to_maxmin[variable] = {"max":-765, "min":765}
+				variables_to_values[variable] = []
+				index +=1
+
+		
+		## - Get max value for each variables
+		## - Get min value for each variables
+		else:
+
+			line_in_array = line.split(",")
+			index = 0
+			for scalar in line_in_array:
+				variable = index_to_variables[index]
+				variables_to_values[variable].append(float(scalar))
+				variable_max = variables_to_maxmin[variable]["max"]
+				variable_min = variables_to_maxmin[variable]["min"]
+				if(float(scalar) > float(variable_max)):
+					variables_to_maxmin[variable]["max"] = float(scalar)
+				if(float(scalar) < float(variable_min)):
+					variables_to_maxmin[variable]["min"] = float(scalar)
+				index +=1
+		cmpt += 1
+	input_data.close()	
+
+
+	## map each variables to [0-255]
+	## TODO : find an algorithm to map the values
+
+
+
+
 ### TEST SPACE ###
-generate_random_data(1400,1400)
+generate_random_data(4,5)
 corr_mat = get_correlation_matrix("trash_data.csv")
 create_image_from_csv("trash_data.csv", "machin.png")
 normalize_data("trash_data.csv")
+simple_conversion_to_img_matrix("trash_data_scaled.csv")
