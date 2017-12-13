@@ -486,6 +486,34 @@ def select_parents(population, good_parents, bad_parents, dist_matrix):
 
 
 
+
+def valid_map_matrix(map_matrix):
+	##
+	## => Check if the map matrix is valid, i.e
+	## if the map contains the same variable more
+	## than once.
+	##
+
+	## init stuff
+	list_of_scalar = []
+	valid_matrix = True
+
+	## loop over the matrix
+	for vector in map_matrix:
+		for scalar in vector:
+
+			if(scalar not in list_of_scalar):
+				list_of_scalar.append(scalar)
+			else:
+				valid_matrix = False
+
+	## return the result of the test
+	return valid_matrix
+
+
+
+
+
 def build_image_map(data_file):
 	##
 	## [IN PROGRESS]
