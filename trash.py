@@ -547,6 +547,56 @@ def mutate_map_matrix(map_matrix, number_of_mutation):
 
 
 
+def generate_new_matrix_from_parent(parent_matrix_1, parent_matrix_2):
+	##
+	## [IN PROGRESS]
+	##
+	## => A very simple reproduction function, create a new matrix
+	##    and for each scalar run the dice to know if it should come
+	##    from parent 1 or parent 2, check if variable not already in
+	##    matrix
+	##
+	## => can return False Matrix
+	##
+
+
+	child_matrix = numpy.zeros(shape=(len(parent_matrix_1),len(parent_matrix_1[0])))
+
+	scalar_in_child = []
+
+	for x in xrange(0,len(child_matrix)-1):
+		for y in xrange(0, len(child_matrix[0])-1):
+
+			## roll the dices
+			random_choice = random.randint(0,100)
+
+			if(random_choice > 50):
+				scalar_to_add = parent_matrix_1[x][y]
+				if(scalar_to_add not in scalar_in_child):
+					child_matrix[x][y] = parent_matrix_1[x][y]
+					scalar_in_child.append(scalar_to_add)
+				else:
+					if(parent_matrix_2[x][y] not in scalar_in_child):
+						child_matrix[x][y] = parent_matrix_2[x][y]
+						scalar_in_child.append(parent_matrix_2[x][y])
+					
+			else:
+				scalar_to_add = parent_matrix_2[x][y]
+				if(scalar_to_add not in scalar_in_child):
+					child_matrix[x][y] = parent_matrix_2[x][y]
+					scalar_in_child.append(scalar_to_add)
+				else:
+					child_matrix[x][y] = parent_matrix_1[x][y]
+					scalar_in_child.append(parent_matrix_1[x][y])
+
+
+	return child_matrix
+
+
+
+
+
+
 
 
 def build_image_map(data_file):
@@ -702,3 +752,14 @@ build_image_map("trash_data_scaled.csv")
 map_matrix = init_grid_matrix(corr_mat)
 get_neighbour(5, map_matrix)
 score = compute_matrix_score(corr_mat, map_matrix)
+
+## reproduction
+
+for x in xrange(0,100000):
+	map_matrix_p1 = init_grid_matrix(corr_mat)
+	map_matrix_p2 = init_grid_matrix(corr_mat)
+	child = generate_new_matrix_from_parent(map_matrix_p1, map_matrix_p2)
+	if(valid_map_matrix(child)):
+		print "Success"
+
+print "EOF"
