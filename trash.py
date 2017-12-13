@@ -5,6 +5,7 @@ import numpy
 from numpy import genfromtxt
 import png
 from sklearn import preprocessing
+from scipy.interpolate import interp1d
 
 
 
@@ -172,9 +173,6 @@ def normalize_data(data_file):
 
 def simple_conversion_to_img_matrix(data_file):
 	##
-	##
-	## [IN PROGRESS]
-	##
 	## -> very basic conversion from
 	##  normalized data to a 0 - 255 ranged
 	##  values.
@@ -184,7 +182,6 @@ def simple_conversion_to_img_matrix(data_file):
 	## of the variables to [0-255]
 	##
 	## => TODO:
-	##	- write code
 	##	- find a cool name for the function
 	##
 
@@ -193,6 +190,7 @@ def simple_conversion_to_img_matrix(data_file):
 	variables_to_maxmin = {}
 	index_to_variables = {}
 	variables_to_values = {}
+	variables_to_interpolatevalues = {}
 
 	## Read input data
 	## - fill the structures
@@ -212,6 +210,7 @@ def simple_conversion_to_img_matrix(data_file):
 				index_to_variables[index] = variable
 				variables_to_maxmin[variable] = {"max":-765, "min":765}
 				variables_to_values[variable] = []
+				variables_to_interpolatevalues[variable] = []
 				index +=1
 
 		
@@ -235,15 +234,50 @@ def simple_conversion_to_img_matrix(data_file):
 	input_data.close()	
 
 
-	## map each variables to [0-255]
-	## TODO : find an algorithm to map the values
+	## Map each variables to [0-255]
+	## Use interpol1d from Scipy
+	for variable in variables_to_values.keys():
+		max_val = variables_to_maxmin[variable]["max"]
+		min_val = variables_to_maxmin[variable]["min"]
+		interpolation = interp1d([min_val,max_val],[0,255])
+		number_of_patients = 0
+		for scalar in variables_to_values[variable]:
+			scalar_interpolated = interpolation(float(scalar))
+			scalar_interpolated = int(scalar_interpolated)
+			variables_to_interpolatevalues[variable].append(scalar_interpolated)
+			number_of_patients += 1
+
+	## Write new file with interpolated data
+	output_file_name = data_file.split(".")
+	output_file_name = output_file_name[0]+"_interpolated.csv"
+
+	output_file = open(output_file_name, "w")
+
+	## Write the header
+	header = ""
+	for variable in variables_to_interpolatevalues.keys():
+		header += str(variable)+","
+	header = header[:-1]	
+	output_file.write(header+"\n")
+
+	for x in xrange(0, number_of_patients):
+		line_to_write = ""
+		for variable in variables_to_interpolatevalues.keys():
+			vector = variables_to_interpolatevalues[variable]
+			line_to_write += str(vector[x])+","
+		line_to_write = line_to_write[:-1]
+		output_file.write(line_to_write+"\n")
+
+	output_file.close()
 
 
 
 
 ### TEST SPACE ###
-generate_random_data(4,5)
+generate_random_data(85,85)
 corr_mat = get_correlation_matrix("trash_data.csv")
 create_image_from_csv("trash_data.csv", "machin.png")
 normalize_data("trash_data.csv")
 simple_conversion_to_img_matrix("trash_data_scaled.csv")
+create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
+
