@@ -493,6 +493,9 @@ def valid_map_matrix(map_matrix):
 	## if the map contains the same variable more
 	## than once.
 	##
+	## => return True if the map_matrix is valid, or False
+	## if it's not.
+	##
 
 	## init stuff
 	list_of_scalar = []
@@ -509,6 +512,38 @@ def valid_map_matrix(map_matrix):
 
 	## return the result of the test
 	return valid_matrix
+
+
+
+
+def mutate_map_matrix(map_matrix, number_of_mutation):
+	##
+	## => Mutate the map_matrix : inverse 2 scalar position
+	## randomly in the matrix, the number of inversions is the
+	## number_of_mutation
+	## => return the mutated matrix
+	##
+
+	## perform a specific number of mutation
+	for x in xrange(0,number_of_mutation):
+
+		## locate random position
+		y_position_start = random.randint(0, len(map_matrix)-1)
+		x_position_start = random.randint(0, len(map_matrix[0])-1)
+
+		y_position_end = random.randint(0, len(map_matrix)-1)
+		x_position_end = random.randint(0, len(map_matrix[0])-1)
+
+		## get the corrersping values
+		value_start = map_matrix[y_position_start][x_position_start]
+		value_end = map_matrix[y_position_end][x_position_end]
+
+		## perform the inversion
+		map_matrix[y_position_start][x_position_start] = value_end
+		map_matrix[y_position_end][x_position_end] = value_start
+
+	## return the mutated matrix
+	return map_matrix
 
 
 
