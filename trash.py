@@ -6,7 +6,7 @@ from numpy import genfromtxt
 import png
 from sklearn import preprocessing
 from scipy.interpolate import interp1d
-
+import math
 
 
 ## TODO
@@ -272,12 +272,128 @@ def simple_conversion_to_img_matrix(data_file):
 
 
 
+def build_image_map(data_file):
+	##
+	## [IN PROGRESS]
+	##
+	## Core of the idea
+	##
+	##
+
+	## get the correlation matrix
+	corr_mat = get_correlation_matrix(data_file)
+	#print corr_mat
+
+	## compute the distance between each variables
+	## kind of "distance matrix"
+	## just use the absolute value of correlation, in this case
+	## we consider that a highly negative value (anticorrelation)
+	## is associated with the variable of interest same as a hihgly correlated
+	## variable
+	
+	#print "="*75
+	dist_mat = abs(corr_mat)
+	#print dist_mat
+
+	## for each variable get the 4 / 8 closest variables
+	## compute a kind of score for the block
+	##	- First ideas for the score : sum of the values from the dist matrix
+	##
+	## [NB] => might be hard to check the compatibility of the
+	## best possibles blocks, stand by for now (use random initialisation with AG instead)
+	
+	#print "="*75
+	
+	variable_id_to_near_variables = {}
+	variable_id = 0
+	
+	for vector in dist_mat:
+
+		## Find best neighbours for each variable from the dist matrix
+		best_neighbours_in_vector = numpy.argpartition(vector, -5)[-5:]
+		best_neighbours_in_vector = best_neighbours_in_vector[numpy.argsort(vector[best_neighbours_in_vector])]
+		best_neighbours_in_vector = list(best_neighbours_in_vector)
+		best_neighbours_in_vector.remove(variable_id)
+		best_neighbours_in_vector.reverse()		
+		variable_id_to_near_variables[variable_id] = best_neighbours_in_vector
+		variable_id += 1
+
+
+	## Current idea : init the grid with an heuristic to maximize the score, or randomly
+	## [CUSTOM ALGORITHM]:
+	## use a genetic algorithm top optimise the global score of the grid (sum of the bloc score)
+	## consider a bloc as an indivdual and each case as a gene
+	## [CARTE AUTOGENERE]
+	## Kohen, etc ...
+
+
+	##-----------------------##
+	## RANDOM INITIALISATION ##
+	##-----------------------##
+	## -> Randomy place the variables on a grid 
+	## to generate an image
+
+	## -> Get dimmension of the grid
+	## [TO FIX] => for now assume we have
+	## a square matrix, might be a good idea
+	## to test a few things on the number of
+	## variables to get the dimmensions of the
+	## grid
+	number_of_variables = len(corr_mat[0])
+	side_size = math.sqrt(number_of_variables)
+	side_size = int(side_size)
+
+	## Randomy assign a position in the grid to a variable
+	variable_to_position = {}
+	for x in xrange(0,number_of_variables):
+		
+		position_assigned = False
+
+		while(not position_assigned):
+			x_position = random.randint(0,side_size-1)
+			y_position = random.randint(0,side_size-1)
+			position = [x_position, y_position]
+
+			if(position not in variable_to_position.values()):
+				variable_to_position[x] = position
+				position_assigned = True
+
+	## Write a matrix with the assigned position as coordinates
+	## for the variables
+	
+	## init the matrix
+	## [WARNINGS] => Still assume we deal
+	## with a square matrix / image for the representation
+	## of the patient
+	
+	## Init matrix
+	map_matrix = numpy.zeros(shape=(side_size,side_size))
+
+	## Fill the matrix
+	for variable in variable_to_position.keys():
+		position = variable_to_position[variable]
+		x_position = position[0]
+		y_position = position[1]
+
+		map_matrix[x_position][y_position] = variable
+
+
+
+
+
+
+
+	## Get new Ideas 
+
+
+
 
 ### TEST SPACE ###
-generate_random_data(85,85)
+generate_random_data(36	,85)
 corr_mat = get_correlation_matrix("trash_data.csv")
 create_image_from_csv("trash_data.csv", "machin.png")
 normalize_data("trash_data.csv")
 simple_conversion_to_img_matrix("trash_data_scaled.csv")
 create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
 
+build_image_map("trash_data_scaled.csv")
