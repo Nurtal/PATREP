@@ -7,6 +7,9 @@ import png
 from sklearn import preprocessing
 from scipy.interpolate import interp1d
 import math
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 
 ## TODO
@@ -18,6 +21,7 @@ import math
 ## => prepare real data
 ## => test on non square matrix
 ## => deal with strange matrix (prime number of variables)
+## => plot log file
 ##
 
 
@@ -617,6 +621,40 @@ def compute_population_score(dist_mat, population):
 	return total_score
 
 
+
+
+
+def plot_log_file(log_file):
+	##
+	## [IN PROGRESS]
+	##
+	## => Plot values of scores in log file
+	##
+	##
+
+	## Init data structure
+	global_scores = []
+
+	## Get the values
+	data = open(log_file)
+	for line in data:
+		line = line.replace("\n", "")
+		line_in_array = line.split(";")
+		if(line_in_array[0] == "global_score"):
+			global_scores.append(line_in_array[1]) 
+	data.close()
+
+	## plot the values
+	print global_scores
+
+	plt.plot(global_scores)
+	plt.show()
+
+
+
+
+
+
 def build_image_map(data_file):
 	##
 	## [IN PROGRESS]
@@ -748,7 +786,7 @@ def build_image_map(data_file):
 
 	## Run the genetic algorithm over
 	## a number cycles
-	number_of_cycles = 1000
+	number_of_cycles = 5000
 	current_population = initial_population
 	for x in xrange(0, number_of_cycles):
 
@@ -791,7 +829,7 @@ def build_image_map(data_file):
 
 				## Mutation
 				if(random.randint(0,100) <= mutation_rate):
-					child = mutate_map_matrix(child, 1)
+					child = mutate_map_matrix(child, 4)
 
 				new_population.append(child)
 				individual_cmpt += 1
@@ -836,15 +874,16 @@ def build_image_map(data_file):
 ### TEST SPACE ###
 ###------------###
 
-generate_random_data(36	,85)
+generate_random_data(36	,36)
 corr_mat = get_correlation_matrix("trash_data.csv")
 
 create_image_from_csv("trash_data.csv", "machin.png")
 normalize_data("trash_data.csv")
 simple_conversion_to_img_matrix("trash_data_scaled.csv")
 create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
-build_image_map("trash_data_scaled.csv")
+#build_image_map("trash_data_scaled.csv")
 
+plot_log_file("learning_optimal_grid.log")
 
 """
 ## operation on map matrix
