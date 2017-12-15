@@ -549,8 +549,6 @@ def mutate_map_matrix(map_matrix, number_of_mutation):
 
 def generate_new_matrix_from_parent(parent_matrix_1, parent_matrix_2):
 	##
-	## [IN PROGRESS]
-	##
 	## => A very simple reproduction function, create a new matrix
 	##    and for each scalar run the dice to know if it should come
 	##    from parent 1 or parent 2, check if variable not already in
@@ -559,13 +557,13 @@ def generate_new_matrix_from_parent(parent_matrix_1, parent_matrix_2):
 	## => can return False Matrix
 	##
 
-
 	child_matrix = numpy.zeros(shape=(len(parent_matrix_1),len(parent_matrix_1[0])))
-
 	scalar_in_child = []
+	errors_cmpt = 0
+	errors_position_list = []
 
-	for x in xrange(0,len(child_matrix)-1):
-		for y in xrange(0, len(child_matrix[0])-1):
+	for x in xrange(0,len(child_matrix)):
+		for y in xrange(0, len(child_matrix[0])):
 
 			## roll the dices
 			random_choice = random.randint(0,100)
@@ -579,24 +577,41 @@ def generate_new_matrix_from_parent(parent_matrix_1, parent_matrix_2):
 					if(parent_matrix_2[x][y] not in scalar_in_child):
 						child_matrix[x][y] = parent_matrix_2[x][y]
 						scalar_in_child.append(parent_matrix_2[x][y])
-					
+					else:
+						child_matrix[x][y] = -1
+						errors_position_list.append([x,y])
+						errors_cmpt += 1
 			else:
 				scalar_to_add = parent_matrix_2[x][y]
 				if(scalar_to_add not in scalar_in_child):
 					child_matrix[x][y] = parent_matrix_2[x][y]
 					scalar_in_child.append(scalar_to_add)
 				else:
-					child_matrix[x][y] = parent_matrix_1[x][y]
-					scalar_in_child.append(parent_matrix_1[x][y])
-
+					if(parent_matrix_1[x][y]):
+						child_matrix[x][y] = parent_matrix_1[x][y]
+						scalar_in_child.append(parent_matrix_1[x][y])
+					else:
+						child_matrix[x][y] = -1
+						errors_position_list.append([x,y])
+						errors_cmpt += 1
 
 	return child_matrix
 
 
 
 
+def compute_population_score(dist_mat, population):
+	##
+	## => Compute the score for the population:
+	## score is just the mean of the score for
+	## each matrix. 
+	##
 
-
+	total_score = 0
+	for ind in population:
+		total_score += compute_matrix_score(dist_mat, ind)
+	total_score = float(float(total_score)/float(len(population)))
+	return total_score
 
 
 def build_image_map(data_file):
@@ -716,28 +731,108 @@ def build_image_map(data_file):
 	## use a genetic algorithm to learn the optimal grid
 	##
 
+
+	## init the log file
+	log_file = open("learning_optimal_grid.log", "w")
+
+
 	## Create initial population
 	initial_population = []
 	for x in xrange(0,300):
 		random_grid = init_grid_matrix(dist_mat)
 		initial_population.append(random_grid)
 
-	## Select parents
-	parents = select_parents(initial_population, 20,5, dist_mat)
 
-	## [TODO]
-	## Crossing over
-	## The idea is to generate a lot of matrix from the parents
-	## and destroy the non-conventional matrix after (i.e matrix
-	## with plusieurs fois the same variable)
+	## Run the genetic algorithm over
+	## a number cycles
+	number_of_cycles = 500
+	current_population = initial_population
+	for x in xrange(0, number_of_cycles):
+
+		print "[GENERATION] ========= "+str(x)+ " ================="
+
+		## Select parents
+		parents = select_parents(current_population, 20,5, dist_mat)
+
+		## parameters
+		population_size = 300
+		individual_cmpt = 0
+		new_population = []
+		tentative_cmpt = 0
+		mutation_rate = 10
+
+		## Create the new generation
+		while(individual_cmpt != population_size):
+
+			## get the parents (random selection)
+			parents_are_different = False
+			male_index = -1
+			female_index = -1
+			while(not parents_are_different):
+				
+				male_index = random.randint(0,len(parents))
+				female_index = random.randint(0,len(parents))
+
+				if(male_index != female_index):
+					parents_are_different = True
+
+			parent_male = parents[random.randint(0,len(parents)-1)]
+			parent_female = parents[random.randint(0,len(parents)-1)]
+
+			## create the child
+			child = generate_new_matrix_from_parent(parent_male, parent_female)
+
+			status = "Failed"
+			if(valid_map_matrix(child)):
 
 
-	## Get new Ideas 
+				## Mutation
+				if(random.randint(0,100) <= mutation_rate):
+					child = mutate_map_matrix(child, 1)
+
+				new_population.append(child)
+				individual_cmpt += 1
+				status = "Success"
+
+			tentative_cmpt += 1
+
+			#print "[INFO] => Generate child tentative "+str(tentative_cmpt) + " ["+status+"]"
+
+		## update population
+		current_population = new_population
+
+		## compute score for the population
+		pop_score = compute_population_score(dist_mat, current_population)
+		print "[GLOBAL SCORE] "+ str(pop_score)
+
+		## find best and worst individual in the population
+		scores = []
+		for ind in current_population:
+			ind_score = compute_matrix_score(dist_mat, ind)
+			scores.append(ind_score)
+
+		best_score = max(scores)
+		worst_score = min(scores)
+
+		print "[BEST SCORE] "+str(best_score)
+		print "[WORST SCORE] "+str(worst_score)
+
+		## Write all informations in a log file
+		log_file.write(">generation "+str(x)+"\n")
+		log_file.write("global_score;"+str(pop_score)+"\n")
+		log_file.write("best_score;"+str(best_score)+"\n")
+		log_file.write("worst_score;"+str(worst_score)+"\n")
+
+
+	## close log file
+	log_file.close()
 
 
 
-
+###------------###
 ### TEST SPACE ###
+###------------###
+
 generate_random_data(36	,85)
 corr_mat = get_correlation_matrix("trash_data.csv")
 
@@ -748,14 +843,27 @@ create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
 build_image_map("trash_data_scaled.csv")
 
 
+"""
 ## operation on map matrix
 map_matrix = init_grid_matrix(corr_mat)
 get_neighbour(5, map_matrix)
 score = compute_matrix_score(corr_mat, map_matrix)
 
-## reproduction
 
-for x in xrange(0,100000):
+
+map_matrix_p1 = init_grid_matrix(corr_mat)
+map_matrix_p2 = init_grid_matrix(corr_mat)
+map_matrix_p3 = init_grid_matrix(corr_mat)
+map_matrix_p4 = init_grid_matrix(corr_mat)
+map_matrix_p5 = init_grid_matrix(corr_mat)
+population = [map_matrix_p1, map_matrix_p2, map_matrix_p3, map_matrix_p4, map_matrix_p5]
+
+#compute_population_score(corr_mat, population)
+"""
+
+## reproduction
+"""
+for x in xrange(0,10000):
 	map_matrix_p1 = init_grid_matrix(corr_mat)
 	map_matrix_p2 = init_grid_matrix(corr_mat)
 	child = generate_new_matrix_from_parent(map_matrix_p1, map_matrix_p2)
@@ -763,3 +871,4 @@ for x in xrange(0,100000):
 		print "Success"
 
 print "EOF"
+"""
