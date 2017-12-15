@@ -11,10 +11,13 @@ import math
 
 ## TODO
 ##
-## => Function to map scaled values to [0,255] interval
-##
-##
-##
+## [DONE] => Function to map scaled values to [0,255] interval
+## => reorder & create new files
+## => create more complex reproduction function
+## => learn hyper parameters (for exemple reproduction function)
+## => prepare real data
+## => test on non square matrix
+## => deal with strange matrix (prime number of variables)
 ##
 
 
@@ -745,7 +748,7 @@ def build_image_map(data_file):
 
 	## Run the genetic algorithm over
 	## a number cycles
-	number_of_cycles = 500
+	number_of_cycles = 1000
 	current_population = initial_population
 	for x in xrange(0, number_of_cycles):
 
