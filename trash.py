@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 ## => prepare real data
 ## => test on non square matrix
 ## => deal with strange matrix (prime number of variables)
-## => plot log file
+## [DONE] => plot log file
 ##
 
 
@@ -641,7 +641,7 @@ def plot_log_file(log_file):
 		line = line.replace("\n", "")
 		line_in_array = line.split(";")
 		if(line_in_array[0] == "global_score"):
-			global_scores.append(line_in_array[1]) 
+			global_scores.append(float(line_in_array[1])) 
 	data.close()
 
 	## plot the values
@@ -786,7 +786,7 @@ def build_image_map(data_file):
 
 	## Run the genetic algorithm over
 	## a number cycles
-	number_of_cycles = 5000
+	number_of_cycles = 50
 	current_population = initial_population
 	for x in xrange(0, number_of_cycles):
 
@@ -882,8 +882,7 @@ normalize_data("trash_data.csv")
 simple_conversion_to_img_matrix("trash_data_scaled.csv")
 create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
 #build_image_map("trash_data_scaled.csv")
-
-plot_log_file("learning_optimal_grid.log")
+#plot_log_file("learning_optimal_grid.log")
 
 """
 ## operation on map matrix
@@ -914,3 +913,7 @@ for x in xrange(0,10000):
 
 print "EOF"
 """
+
+
+## Display stuff
+plot_log_file("learning_optimal_grid_50.log")
