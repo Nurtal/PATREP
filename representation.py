@@ -1,71 +1,16 @@
-
-
-import random
 import numpy
 from numpy import genfromtxt
 import png
-from sklearn import preprocessing
 from scipy.interpolate import interp1d
 import math
-import matplotlib
-matplotlib.use('TkAgg')
-import matplotlib.pyplot as plt
+import random
+import operator
 
 
-## TODO
-##
-## [DONE] => Function to map scaled values to [0,255] interval
-## => reorder & create new files
-## => create more complex reproduction function
-## => learn hyper parameters (for exemple reproduction function)
-## => prepare real data
-## => test on non square matrix
-## => deal with strange matrix (prime number of variables)
-## [DONE] => plot log file
-##
+## Represent observations as image.
+## -> Learn the optimal structure for the image
 
 
-
-def generate_random_data(number_of_variables, number_of_patients):
-	##
-	## create a csv file with
-	## random variables
-	##
-
-	data_file_name = "trash_data.csv"
-	variables_to_values = {}
-
-	## Generate data
-	for x in xrange(0, number_of_variables):
-		variable_name = "variable_"+str(x)
-		vector = []
-		min_value = random.randint(0,25)
-		max_value = random.randint(85,100)
-		for y in xrange(0, number_of_patients):
-			scalar = random.randint(min_value, max_value)
-			vector.append(scalar)
-		variables_to_values[variable_name] = vector
-
-	## Write data
-	output_file = open(data_file_name, "w")
-
-	## write header
-	header = ""
-	for key in variables_to_values.keys():
-		header+=str(key)+","
-	header = header[:-1]
-	output_file.write(header+"\n")
-
-	## write patients
-	for x in xrange(0, number_of_patients):
-		patient = ""
-		for y in xrange(0, number_of_variables):
-			key = "variable_"+str(y)
-			patient+=str(variables_to_values[key][x])+","
-		patient = patient[:-1]
-		output_file.write(patient+"\n")
-
-	output_file.close()
 
 
 def get_correlation_matrix(input_data_file):
@@ -119,6 +64,8 @@ def get_correlation_matrix(input_data_file):
 	return correlation_matrix
 
 
+
+
 def create_image_from_csv(data_file, image_file):
 	##
 	## -> Create an image from a csv file,
@@ -135,46 +82,6 @@ def create_image_from_csv(data_file, image_file):
 
 	## save the image
 	png.from_array(matrix, 'L').save(image_file)
-
-
-
-def normalize_data(data_file):
-	##
-	## -> Scale (centrer normer) the data
-	## and write the data in new _scaled data
-	## file
-	##
-
-	## Get the header
-	cmpt = 0
-	header = ""
-	input_data = open(data_file, "r")
-	for line in input_data:
-		line = line.replace("\n", "")
-		if(cmpt == 0):
-			header = line
-		cmpt += 1
-	input_data.close()
-
-	## Get and scale data
-	data = genfromtxt(data_file, delimiter=',')
-	data_scaled = preprocessing.scale(data[1:])
-
-	## Write new file
-	output_file_name = data_file.split(".")
-	output_file_name = output_file_name[0]+"_scaled.csv"
-
-	output_data = open(output_file_name, "w")
-	output_data.write(header+"\n")
-
-	for vector in data_scaled:
-		vector_to_write = ""
-		for scalar in vector:
-			vector_to_write += str(scalar)+","
-		vector_to_write = vector_to_write[:-1]
-		output_data.write(vector_to_write+"\n")
-	output_data.close()
-
 
 
 
@@ -281,6 +188,7 @@ def simple_conversion_to_img_matrix(data_file):
 
 
 
+
 def init_grid_matrix(corr_mat):
 	##
 	## Just a function to instanciate
@@ -327,6 +235,7 @@ def init_grid_matrix(corr_mat):
 
 
 	return map_matrix
+
 
 
 
@@ -427,9 +336,31 @@ def compute_matrix_score(corr_matrix, grid_matrix):
 
 
 
-import operator
+def select_best_grid(population, dist_matrix):
+	##
+	## Select best grid ( according to score ) from
+	## a population.
+	## -> population is a list of grids
+	## -> dist_matrix is by default the correlation matrix
+	## -> return a grid
+	##
 
+	## Compute the score for each individual (matrix) in the
+	## population.
+	ind_index_to_score = {}
+	index_to_ind = {}
+	ind_index = 0
+	
+	for ind in population:
+		ind_index_to_score[ind_index] = compute_matrix_score(dist_matrix, ind)
+		index_to_ind[ind_index] = ind
+		ind_index += 1
 
+	## select best grid
+	best_grid_index = max(ind_index_to_score.iteritems(), key=operator.itemgetter(1))[0]
+	best_grid = index_to_ind[best_grid_index]
+
+	return best_grid
 
 
 
@@ -493,7 +424,6 @@ def select_parents(population, good_parents, bad_parents, dist_matrix):
 
 
 
-
 def valid_map_matrix(map_matrix):
 	##
 	## => Check if the map matrix is valid, i.e
@@ -519,7 +449,6 @@ def valid_map_matrix(map_matrix):
 
 	## return the result of the test
 	return valid_matrix
-
 
 
 
@@ -551,6 +480,7 @@ def mutate_map_matrix(map_matrix, number_of_mutation):
 
 	## return the mutated matrix
 	return map_matrix
+
 
 
 
@@ -606,7 +536,6 @@ def generate_new_matrix_from_parent(parent_matrix_1, parent_matrix_2):
 
 
 
-
 def compute_population_score(dist_mat, population):
 	##
 	## => Compute the score for the population:
@@ -619,37 +548,6 @@ def compute_population_score(dist_mat, population):
 		total_score += compute_matrix_score(dist_mat, ind)
 	total_score = float(float(total_score)/float(len(population)))
 	return total_score
-
-
-
-
-
-def plot_log_file(log_file):
-	##
-	## [IN PROGRESS]
-	##
-	## => Plot values of scores in log file
-	##
-	##
-
-	## Init data structure
-	global_scores = []
-
-	## Get the values
-	data = open(log_file)
-	for line in data:
-		line = line.replace("\n", "")
-		line_in_array = line.split(";")
-		if(line_in_array[0] == "global_score"):
-			global_scores.append(float(line_in_array[1])) 
-	data.close()
-
-	## plot the values
-	print global_scores
-
-	plt.plot(global_scores)
-	plt.show()
-
 
 
 
@@ -867,90 +765,6 @@ def build_image_map(data_file):
 
 	## close log file
 	log_file.close()
-
-
-
-###------------###
-### TEST SPACE ###
-###------------###
-
-
-
-def select_best_grid(population, dist_matrix):
-	##
-	## Select best grid ( according to score ) from
-	## a population.
-	## -> population is a list of grids
-	## -> dist_matrix is by default the correlation matrix
-	## -> return a grid
-	##
-
-	## Compute the score for each individual (matrix) in the
-	## population.
-	ind_index_to_score = {}
-	index_to_ind = {}
-	ind_index = 0
-	
-	for ind in population:
-		ind_index_to_score[ind_index] = compute_matrix_score(dist_matrix, ind)
-		index_to_ind[ind_index] = ind
-		ind_index += 1
-
-	## select best grid
-	best_grid_index = max(ind_index_to_score.iteritems(), key=operator.itemgetter(1))[0]
-	best_grid = index_to_ind[best_grid_index]
-
-	return best_grid
-
-
-generate_random_data(36	,36)
-corr_mat = get_correlation_matrix("trash_data.csv")
-
-create_image_from_csv("trash_data.csv", "machin.png")
-normalize_data("trash_data.csv")
-simple_conversion_to_img_matrix("trash_data_scaled.csv")
-create_image_from_csv("trash_data_scaled_interpolated.csv", "machin.png")
-#build_image_map("trash_data_scaled.csv")
-#plot_log_file("learning_optimal_grid.log")
-
-
-## operation on map matrix
-map_matrix = init_grid_matrix(corr_mat)
-get_neighbour(5, map_matrix)
-score = compute_matrix_score(corr_mat, map_matrix)
-
-
-
-map_matrix_p1 = init_grid_matrix(corr_mat)
-map_matrix_p2 = init_grid_matrix(corr_mat)
-map_matrix_p3 = init_grid_matrix(corr_mat)
-map_matrix_p4 = init_grid_matrix(corr_mat)
-map_matrix_p5 = init_grid_matrix(corr_mat)
-population = [map_matrix_p1, map_matrix_p2, map_matrix_p3, map_matrix_p4, map_matrix_p5]
-
-best_map = select_best_grid(population,corr_mat)
-best_score = compute_matrix_score(corr_mat, best_map)
-
-print best_score
-print best_map
-
-#compute_population_score(corr_mat, population)
-
-## reproduction
-"""
-for x in xrange(0,10000):
-	map_matrix_p1 = init_grid_matrix(corr_mat)
-	map_matrix_p2 = init_grid_matrix(corr_mat)
-	child = generate_new_matrix_from_parent(map_matrix_p1, map_matrix_p2)
-	if(valid_map_matrix(child)):
-		print "Success"
-
-print "EOF"
-"""
-
-
-## Display stuff
-#plot_log_file("learning_optimal_grid_50.log")
 
 
 
