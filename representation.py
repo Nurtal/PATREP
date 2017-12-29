@@ -442,8 +442,10 @@ def valid_map_matrix(map_matrix):
 	for vector in map_matrix:
 		for scalar in vector:
 
-			if(scalar not in list_of_scalar):
-				list_of_scalar.append(scalar)
+			if(float(scalar) == -1):
+				valid_matrix = False
+			elif(scalar not in list_of_scalar):
+				list_of_scalar.append(scalar)				
 			else:
 				valid_matrix = False
 
@@ -689,9 +691,14 @@ def build_image_map(data_file):
 				if(random.randint(0,100) <= mutation_rate):
 					child = mutate_map_matrix(child, 4)
 
-				new_population.append(child)
-				individual_cmpt += 1
-				status = "Success"
+					if(valid_map_matrix(child)):
+						new_population.append(child)
+						individual_cmpt += 1
+						status = "Success"
+				else:
+					new_population.append(child)
+					individual_cmpt += 1
+					status = "Success"
 
 			tentative_cmpt += 1
 
@@ -740,4 +747,99 @@ def build_image_map(data_file):
 
 
 
+
+def build_patient_representation(data_file, map_matrix):
+	##
+	## Generate an image for each observation (line, except header)
+	## in data_file.
+	## map_matrix is the structure of the image to generate
+	## all images are generated in the images folder.
+	##
+
+
+	## get cohorte data
+	index_to_variable = {}
+	cohorte = []
+	input_data = open(data_file, "r")
+	cmpt = 0
+	for line in input_data:
+		patient = {}
+		line = line.replace("\n", "")
+		line_in_array = line.split(",")
+		if(cmpt == 0):
+			index = 0
+			for variable in line_in_array:
+				index_to_variable[index] = variable
+				index += 1
+		else:
+			index = 0
+			for scalar in line_in_array:
+				patient[index_to_variable[index]] = int(scalar)
+				index += 1
+			cohorte.append(patient)
+		cmpt +=1
+	input_data.close()
+
+
+	## get map for the image structure
+	variable_to_position = {}
+	for x in xrange(0,len(map_matrix)):
+		vector = map_matrix[x]
+		for y in xrange(0,len(vector)):
+			variable = map_matrix[x][y]
+			position = [x,y]
+			variable_to_position[variable] = position
+
+
+	## create image for each patients in cohorte
+	number_of_variables = len(index_to_variable.keys())
+	side_size = math.sqrt(number_of_variables)
+	side_size = int(side_size)
+	cmpt = 0
+	for patient in cohorte:
+
+		## init patient grid
+		patient_grid = numpy.zeros(shape=(side_size,side_size))
+
+		## fill the patient grid
+		for variable in index_to_variable.values():
+			
+			## get the variable id from information in the header
+			variable_id = variable.split("_")
+			variable_id = float(variable_id[-1])
+
+			## get variable position in the grid
+			position = variable_to_position[variable_id]
+			position_x = position[0]
+			position_y = position[1]
+
+			## assign corresponding value to the position
+			patient_grid[position_x][position_y] = int(patient[variable])
+
+		## create the image dor the patient
+		## write csv file for the patient
+
+		csv_file = open("image_generation.tmp", "w")
+		
+		## deal with header
+		header = ""
+		for x in xrange(0, len(patient_grid[0])):
+			header += str(x)+","
+		header = header[:-1]
+		csv_file.write(header+"\n")
+
+		## write data
+		for vector in patient_grid:
+			line_to_write = ""
+			for scalar in vector:
+				line_to_write += str(scalar) + ","
+			line_to_write = line_to_write[:-1]
+			csv_file.write(line_to_write+"\n")
+		csv_file.close()
+
+		## generate image from csv file
+		image_file = "images/patient_"+str(cmpt)+".png"
+		create_image_from_csv("image_generation.tmp", image_file)
+
+		cmpt += 1
 
