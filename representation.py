@@ -21,6 +21,7 @@ def get_correlation_matrix(input_data_file):
 	## -> the variables in the correlation matrix are in
 	## the same order as the variables in the header
 	##
+	##
 
 	## parameters
 	variables_to_values = {}
@@ -60,7 +61,12 @@ def get_correlation_matrix(input_data_file):
 		variables_matrix[index] = variables_to_values[index_to_variables[index]]
 		index += 1 
 
+	## warning : generate NaN when forced squared Matrix
 	correlation_matrix = numpy.corrcoef(variables_matrix)
+	
+	## Replace NaN by 0
+	correlation_matrix = numpy.where(numpy.isnan(correlation_matrix), numpy.ma.array(correlation_matrix, mask=numpy.isnan(correlation_matrix)).mean(axis=0), correlation_matrix)
+
 	return correlation_matrix
 
 
@@ -213,6 +219,7 @@ def init_grid_matrix(corr_mat):
 			if(position not in variable_to_position.values()):
 				variable_to_position[x] = position
 				position_assigned = True
+
 
 	## Write a matrix with the assigned position as coordinates
 	## for the variables
@@ -583,7 +590,6 @@ def build_image_map(data_file):
 	## is associated with the variable of interest same as a hihgly correlated
 	## variable	
 	dist_mat = abs(corr_mat)
-
 
 	##--------------------------##
 	## HEURISTIC INITIALISATION ##

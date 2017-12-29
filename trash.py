@@ -870,12 +870,6 @@ def build_image_map(data_file):
 
 
 
-###------------###
-### TEST SPACE ###
-###------------###
-
-
-
 def select_best_grid(population, dist_matrix):
 	##
 	## Select best grid ( according to score ) from
@@ -903,6 +897,172 @@ def select_best_grid(population, dist_matrix):
 	return best_grid
 
 
+
+
+def reformat_input_datasets(input_dataset, classification_variable_position, force_square_matrix):
+	##
+	## IN TEST PHASE
+	##
+	## Reformat the input_dataset to be processed ny the PATREP functions
+	## classification_variable_position is an integer, the position of
+	## the classification variable in the header.
+	##
+	## force_square_matrix is a boolean, add "dead variables" to get
+	## a square matrix in the end.
+	##
+	## Produce a manifest file to map the variables to their number
+	## Produce a classification file to map the observations to teir class
+	##
+	##
+
+
+	if(force_square_matrix):
+		
+		## get the number of variables
+		number_of_variables = -1
+		input_data = open(input_dataset, "r")
+		cmpt = 0
+		for line in input_data:
+			if(cmpt == 0):
+				line_in_array = line.split(",")
+				number_of_variables = len(line_in_array)-1
+			cmpt += 1
+		input_data.close()
+
+		## test if we can build a square matrix with that
+		test_value_1 = math.sqrt(number_of_variables)
+		test_value_2 = int(test_value_1)
+		optimal_number_of_variables = number_of_variables
+		if(float(test_value_1 - test_value_2) > 0):
+
+			## find next cool number of variables
+			can_do_something_with_this = False
+			while(not can_do_something_with_this):
+				
+				test_value_1 = math.sqrt(optimal_number_of_variables)
+				test_value_2 = int(test_value_1)
+				if(float(test_value_1 - test_value_2) == 0):
+					can_do_something_with_this = True
+				else:
+					optimal_number_of_variables	+= 1
+
+
+		## Create the index file for variables
+		output_dataset_name = input_dataset.split(".")
+		output_dataset_name = output_dataset_name[0]+"_reformated.csv"
+		output_dataset = open(output_dataset_name, "w")
+		input_dataset = open(input_dataset, "r")
+		index_file = open("variable_manifest.csv", "w")
+		classification_file = open("observations_classification.csv", "w")
+		cmpt = 0
+		for line in input_dataset:
+			line = line.replace("\n", "")
+			
+			## create new header
+			## create index file
+			if(cmpt ==0):
+				new_header = ""
+				line_in_array = line.split(",")
+				index = 0
+				for variable in line_in_array:
+					if(index != classification_variable_position):
+						new_variable = "variable_"+str(index)
+						new_header += str(new_variable)+","
+						index_file.write(str(variable) +"," +str(new_variable)+"\n")
+					index += 1
+				
+				## add dead variable to fit a square matrix
+				for x in xrange(optimal_number_of_variables - number_of_variables - 1):
+					new_header += "variable_"+str(index) + ","
+					index_file.write(str(variable) +"," +str(new_variable)+"\n")
+					index += 1
+
+				## Write the final header
+				new_header = new_header[:-1]
+				output_dataset.write(new_header+"\n")
+			
+			## fill output file
+			## create classification file
+			else:
+				line_to_write = ""
+				index = 0
+				line_in_array = line.split(",")
+				for scalar in line_in_array:
+					if(index != classification_variable_position):
+						line_to_write += str(scalar) + ","
+					else:
+						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+"\n")
+					index +=1
+
+				## add dead variable to fit a square matrix
+				for x in xrange(optimal_number_of_variables - number_of_variables -1):
+					line_to_write += "0,"
+
+				line_to_write = line_to_write[:-1]
+				output_dataset.write(line_to_write+"\n") 
+			cmpt +=1
+
+		classification_file.close()
+		index_file.close()
+		input_dataset.close()
+
+	else:
+		## Create the index file for variables
+		output_dataset_name = input_dataset.split(".")
+		output_dataset_name = output_dataset_name[0]+"_reformated.csv"
+		output_dataset = open(output_dataset_name, "w")
+		input_dataset = open(input_dataset, "r")
+		index_file = open("variable_manifest.csv", "w")
+		classification_file = open("observations_classification.csv", "w")
+		cmpt = 0
+		for line in input_dataset:
+			line = line.replace("\n", "")
+		
+			## create new header
+			## create index file
+			if(cmpt ==0):
+				new_header = ""
+				line_in_array = line.split(",")
+				index = 0
+				for variable in line_in_array:
+					if(index != classification_variable_position):
+						new_variable = "variable_"+str(index)
+						new_header += str(new_variable)+","
+						index_file.write(str(variable) +"," +str(new_variable)+"\n")
+					index += 1
+				new_header = new_header[:-1]
+				output_dataset.write(new_header+"\n")
+		
+			## fill output file
+			## create classification file
+			else:
+				line_to_write = ""
+				index = 0
+				line_in_array = line.split(",")
+				for scalar in line_in_array:
+					if(index != classification_variable_position):
+						line_to_write += str(scalar) + ","
+					else:
+						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+"\n")
+					index +=1
+				line_to_write = line_to_write[:-1]
+				output_dataset.write(line_to_write+"\n") 
+			cmpt +=1
+
+		classification_file.close()
+		index_file.close()
+		input_dataset.close()
+
+
+
+
+
+###------------###
+### TEST SPACE ###
+###------------###
+
+
+"""
 generate_random_data(36	,36)
 corr_mat = get_correlation_matrix("trash_data.csv")
 
@@ -935,6 +1095,9 @@ print best_score
 print best_map
 
 #compute_population_score(corr_mat, population)
+"""
+
+
 
 ## reproduction
 """
@@ -952,6 +1115,19 @@ print "EOF"
 ## Display stuff
 #plot_log_file("learning_optimal_grid_50.log")
 
+
+
+## convert a dataset to a collection of images
+
+
+
+## preprocess input datasets
+reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
+
+#corr_mat = get_correlation_matrix("datasets/creditcard_reduce_reformated.csv")
+#normalize_data("datasets/creditcard_reduce_reformated.csv")
+#build_image_map("datasets/creditcard_reduce_reformated_scaled.csv")
+#plot_log_file("learning_optimal_grid.log")
 
 
 
