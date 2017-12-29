@@ -557,34 +557,44 @@ def build_image_map(data_file):
 	##
 	## [IN PROGRESS]
 	##
-	## Core of the idea
+	## => Core of the idea <=
+	## This function perform the global operation
+	## of finding the best possible grid.
+	## 
+	## [STEP 1] => compute the distance matrix between
+	## the variables, in this first version it's absolute
+	## value of the correlation matrix.
 	##
+	## [STEP 2] => use a genetic algorithm to find the optimal
+	## solution (i.e the best map to build the image)
+	##
+	## -> return the best grid found
 	##
 
 	## get the correlation matrix
 	corr_mat = get_correlation_matrix(data_file)
-	#print corr_mat
 
 	## compute the distance between each variables
 	## kind of "distance matrix"
 	## just use the absolute value of correlation, in this case
 	## we consider that a highly negative value (anticorrelation)
 	## is associated with the variable of interest same as a hihgly correlated
-	## variable
-	
-	#print "="*75
+	## variable	
 	dist_mat = abs(corr_mat)
-	#print dist_mat
 
+
+	##--------------------------##
+	## HEURISTIC INITIALISATION ##
+	##--------------------------##
+	## ==============[WORK IN PROGRESS]================
+	"""
 	## for each variable get the 4 / 8 closest variables
 	## compute a kind of score for the block
 	##	- First ideas for the score : sum of the values from the dist matrix
 	##
 	## [NB] => might be hard to check the compatibility of the
 	## best possibles blocks, stand by for now (use random initialisation with AG instead)
-	
-	#print "="*75
-	
+		
 	variable_id_to_near_variables = {}
 	variable_id = 0
 	
@@ -599,67 +609,15 @@ def build_image_map(data_file):
 		variable_id_to_near_variables[variable_id] = best_neighbours_in_vector
 		variable_id += 1
 
-
 	## Current idea : init the grid with an heuristic to maximize the score, or randomly
 	## [CUSTOM ALGORITHM]:
 	## use a genetic algorithm top optimise the global score of the grid (sum of the bloc score)
 	## consider a bloc as an indivdual and each case as a gene
 	## [CARTE AUTOGENERE]
 	## Kohen, etc ...
-
-
-	##-----------------------##
-	## RANDOM INITIALISATION ##
-	##-----------------------##
-	## -> Randomy place the variables on a grid 
-	## to generate an image
-
-	## -> Get dimmension of the grid
-	## [TO FIX] => for now assume we have
-	## a square matrix, might be a good idea
-	## to test a few things on the number of
-	## variables to get the dimmensions of the
-	## grid
-	number_of_variables = len(corr_mat[0])
-	side_size = math.sqrt(number_of_variables)
-	side_size = int(side_size)
-
-	## Randomy assign a position in the grid to a variable
-	variable_to_position = {}
-	for x in xrange(0,number_of_variables):
-		
-		position_assigned = False
-
-		while(not position_assigned):
-			x_position = random.randint(0,side_size-1)
-			y_position = random.randint(0,side_size-1)
-			position = [x_position, y_position]
-
-			if(position not in variable_to_position.values()):
-				variable_to_position[x] = position
-				position_assigned = True
-
-	## Write a matrix with the assigned position as coordinates
-	## for the variables
+	"""
+	## ==============[END OF PROGRESS ZONE]================
 	
-	## init the matrix
-	## [WARNINGS] => Still assume we deal
-	## with a square matrix / image for the representation
-	## of the patient
-	
-	## Init matrix
-	map_matrix = numpy.zeros(shape=(side_size,side_size))
-
-	## Fill the matrix
-	for variable in variable_to_position.keys():
-		position = variable_to_position[variable]
-		x_position = position[0]
-		y_position = position[1]
-
-		map_matrix[x_position][y_position] = variable
-
-	## -> Compute matrix score
-	initial_score = compute_matrix_score(dist_mat, map_matrix)
 
 
 	##------------------------##
@@ -686,6 +644,8 @@ def build_image_map(data_file):
 	## a number cycles
 	number_of_cycles = 50
 	current_population = initial_population
+	best_grid = select_best_grid(current_population, dist_mat)
+	best_grid_score = compute_matrix_score(best_grid, dist_mat)
 	for x in xrange(0, number_of_cycles):
 
 		print "[GENERATION] ========= "+str(x)+ " ================="
@@ -756,6 +716,14 @@ def build_image_map(data_file):
 		print "[BEST SCORE] "+str(best_score)
 		print "[WORST SCORE] "+str(worst_score)
 
+		## save best solution (best grid)
+		best_grid_candidate = select_best_grid(current_population, dist_mat)
+		best_grid_candidate_score = compute_matrix_score(best_grid_candidate, dist_mat)
+		if(best_grid_candidate_score > best_grid_score):
+			best_grid = best_grid_candidate
+			best_grid_candidate_score = best_grid_score
+
+
 		## Write all informations in a log file
 		log_file.write(">generation "+str(x)+"\n")
 		log_file.write("global_score;"+str(pop_score)+"\n")
@@ -765,6 +733,9 @@ def build_image_map(data_file):
 
 	## close log file
 	log_file.close()
+
+	## return best solution found
+	return best_grid
 
 
 
