@@ -162,7 +162,10 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 				
 				## add dead variable to fit a square matrix
 				for x in xrange(optimal_number_of_variables - number_of_variables):
-					new_header += "variable_"+str(index) + ","
+					
+					## deal with the index += 1 from last loop
+					new_variable = "variable_"+str(index-1)
+					new_header += str(new_variable)+","
 					index_file.write(str(variable) +"," +str(new_variable)+"\n")
 					index += 1
 
@@ -215,7 +218,7 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 				index = 0
 				for variable in line_in_array:
 					if(index != classification_variable_position):
-						new_variable = "variable_"+str(index)
+						new_variable = "variable_"+str(index+1)
 						new_header += str(new_variable)+","
 						index_file.write(str(variable) +"," +str(new_variable)+"\n")
 					index += 1

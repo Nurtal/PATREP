@@ -1122,12 +1122,14 @@ print "EOF"
 
 
 ## preprocess input datasets
-reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
+#reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
 
 #corr_mat = get_correlation_matrix("datasets/creditcard_reduce_reformated.csv")
 #normalize_data("datasets/creditcard_reduce_reformated.csv")
 #build_image_map("datasets/creditcard_reduce_reformated_scaled.csv")
 #plot_log_file("learning_optimal_grid.log")
+
+
 
 
 

@@ -562,7 +562,7 @@ def compute_population_score(dist_mat, population):
 
 
 
-def build_image_map(data_file):
+def build_image_map(data_file, n_cycles):
 	##
 	## [IN PROGRESS]
 	##
@@ -570,6 +570,8 @@ def build_image_map(data_file):
 	## This function perform the global operation
 	## of finding the best possible grid.
 	## 
+	## n_cycle is the number of cycles for the genetic algorithm.
+	##
 	## [STEP 1] => compute the distance matrix between
 	## the variables, in this first version it's absolute
 	## value of the correlation matrix.
@@ -650,7 +652,7 @@ def build_image_map(data_file):
 
 	## Run the genetic algorithm over
 	## a number cycles
-	number_of_cycles = 50
+	number_of_cycles = n_cycles
 	current_population = initial_population
 	best_grid = select_best_grid(current_population, dist_mat)
 	best_grid_score = compute_matrix_score(best_grid, dist_mat)
