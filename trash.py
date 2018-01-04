@@ -1057,6 +1057,77 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 
 
 
+
+def build_patient_matrix_dev(data_file, map_matrix):
+	##
+	## IN PROGRESS
+	##
+
+	## get cohorte data
+	index_to_variable = {}
+	cohorte = []
+	input_data = open(data_file, "r")
+	cmpt = 0
+	for line in input_data:
+		patient = {}
+		line = line.replace("\n", "")
+		line_in_array = line.split(",")
+		if(cmpt == 0):
+			index = 0
+			for variable in line_in_array:
+				index_to_variable[index] = variable
+				index += 1
+		else:
+			index = 0
+			for scalar in line_in_array:
+				patient[index_to_variable[index]] = int(scalar)
+				index += 1
+			cohorte.append(patient)
+		cmpt +=1
+	input_data.close()
+
+
+	## get map for the image structure
+	variable_to_position = {}
+	for x in xrange(0,len(map_matrix)):
+		vector = map_matrix[x]
+		for y in xrange(0,len(vector)):
+			variable = map_matrix[x][y]
+			position = [x,y]
+			variable_to_position[variable] = position
+
+	## create matrix for each patients in cohorte
+	number_of_variables = len(index_to_variable.keys())
+	side_size = math.sqrt(number_of_variables)
+	side_size = int(side_size)
+	cmpt = 0
+	cohorte_matrix = []
+	for patient in cohorte:
+
+		## init patient grid
+		patient_grid = numpy.zeros(shape=(side_size,side_size))
+
+		## fill the patient grid
+		for variable in index_to_variable.values():
+			
+			## get the variable id from information in the header
+			variable_id = variable.split("_")
+			variable_id = float(variable_id[-1])
+
+			## get variable position in the grid
+			position = variable_to_position[variable_id]
+			position_x = position[0]
+			position_y = position[1]
+
+			## assign corresponding value to the position
+			patient_grid[position_x][position_y] = int(patient[variable])
+
+			## add matrix in list of matrix
+			cohorte_matrix.append(patient_grid)
+
+	return cohorte_matrix
+
+
 ###------------###
 ### TEST SPACE ###
 ###------------###
@@ -1128,6 +1199,7 @@ print "EOF"
 #normalize_data("datasets/creditcard_reduce_reformated.csv")
 #build_image_map("datasets/creditcard_reduce_reformated_scaled.csv")
 #plot_log_file("learning_optimal_grid.log")
+
 
 
 
