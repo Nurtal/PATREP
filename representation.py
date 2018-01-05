@@ -6,6 +6,7 @@ import math
 import random
 import operator
 
+from time import gmtime, strftime
 
 ## Represent observations as image.
 ## -> Learn the optimal structure for the image
@@ -359,6 +360,7 @@ def select_best_grid(population, dist_matrix):
 	ind_index = 0
 	
 	for ind in population:
+
 		ind_index_to_score[ind_index] = compute_matrix_score(dist_matrix, ind)
 		index_to_ind[ind_index] = ind
 		ind_index += 1
@@ -638,10 +640,8 @@ def build_image_map(data_file, n_cycles):
 	## use a genetic algorithm to learn the optimal grid
 	##
 
-
 	## init the log file
 	log_file = open("learning_optimal_grid.log", "w")
-
 
 	## Create initial population
 	initial_population = []
@@ -649,16 +649,20 @@ def build_image_map(data_file, n_cycles):
 		random_grid = init_grid_matrix(dist_mat)
 		initial_population.append(random_grid)
 
-
 	## Run the genetic algorithm over
 	## a number cycles
 	number_of_cycles = n_cycles
 	current_population = initial_population
 	best_grid = select_best_grid(current_population, dist_mat)
-	best_grid_score = compute_matrix_score(best_grid, dist_mat)
+	best_grid_score = compute_matrix_score(dist_mat, best_grid)
+
 	for x in xrange(0, number_of_cycles):
 
 		print "[GENERATION] ========= "+str(x)+ " ================="
+
+
+		## debug
+		print "[ENTER THE CYCLE] => " +str(strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()))
 
 		## Select parents
 		parents = select_parents(current_population, 20,5, dist_mat)
@@ -733,7 +737,7 @@ def build_image_map(data_file, n_cycles):
 
 		## save best solution (best grid)
 		best_grid_candidate = select_best_grid(current_population, dist_mat)
-		best_grid_candidate_score = compute_matrix_score(best_grid_candidate, dist_mat)
+		best_grid_candidate_score = compute_matrix_score(dist_mat, best_grid_candidate)
 		if(best_grid_candidate_score > best_grid_score):
 			best_grid = best_grid_candidate
 			best_grid_candidate_score = best_grid_score
@@ -744,6 +748,11 @@ def build_image_map(data_file, n_cycles):
 		log_file.write("global_score;"+str(pop_score)+"\n")
 		log_file.write("best_score;"+str(best_score)+"\n")
 		log_file.write("worst_score;"+str(worst_score)+"\n")
+
+
+		## debug
+		print "[EXIT THE CYCLE] => " +str(strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()))
+
 
 
 	## close log file

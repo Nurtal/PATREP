@@ -45,15 +45,27 @@ def plot_log_file(log_file):
 #representation.build_patient_representation("trash_data_scaled_interpolated.csv", image_structure)
 #plot_log_file("learning_optimal_grid.log")
 
-## Test on rea external dataset
+## Test on real external dataset
+"""
 preprocessing.reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
 preprocessing.normalize_data("datasets/creditcard_reduce_reformated.csv")
-image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 10)
+image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 500)
 representation.simple_conversion_to_img_matrix("datasets/creditcard_reduce_reformated_scaled.csv")
 representation.build_patient_representation("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
-patients_matrix = representation.build_patient_matrix("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
+real_data = representation.build_patient_matrix("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
 (train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
-classification.run_CNN(train_X, train_Y, test_X, test_Y)
+classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
+
+plot_log_file("learning_optimal_grid.log")
+"""
 
 
-#plot_log_file("learning_optimal_grid.log")	
+## Test on HLA data
+preprocessing.reformat_input_datasets("datasets/HLA_data_clean.csv", 562, True)
+preprocessing.normalize_data("datasets/HLA_data_clean_reformated.csv")
+image_structure = representation.build_image_map("datasets/HLA_data_clean_reformated_scaled.csv", 125)
+representation.simple_conversion_to_img_matrix("datasets//HLA_data_clean_reformated_scaled.csv")
+representation.build_patient_representation("datasets//HLA_data_clean_reformated_scaled_interpolated.csv", image_structure)
+real_data = representation.build_patient_matrix("datasets//HLA_data_clean_reformated_scaled_interpolated.csv", image_structure)
+(train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
+classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
