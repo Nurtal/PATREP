@@ -144,6 +144,11 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 		index_file = open("variable_manifest.csv", "w")
 		classification_file = open("observations_classification.csv", "w")
 		cmpt = 0
+
+		## classification variables
+		class_to_id = {}
+		class_id = 0
+
 		for line in input_dataset:
 			line = line.replace("\n", "")
 			
@@ -183,7 +188,14 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 					if(index != classification_variable_position):
 						line_to_write += str(scalar) + ","
 					else:
-						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+"\n")
+
+						## associate an id (integer) to each class
+						if(str(scalar) not in class_to_id.keys()):
+							class_to_id[str(scalar)] = class_id
+							class_id += 1
+
+						## write in classification file
+						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+ ","+ str(class_to_id[str(scalar)])+"\n")
 					index +=1
 
 				## add dead variable to fit a square matrix
@@ -206,6 +218,11 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 		input_dataset = open(input_dataset, "r")
 		index_file = open("variable_manifest.csv", "w")
 		classification_file = open("observations_classification.csv", "w")
+
+		## classification variables
+		class_to_id = {}
+		class_id = 0
+		
 		cmpt = 0
 		for line in input_dataset:
 			line = line.replace("\n", "")
@@ -235,7 +252,15 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 					if(index != classification_variable_position):
 						line_to_write += str(scalar) + ","
 					else:
-						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+"\n")
+
+						## associate an id (integer) to each class
+						if(str(scalar) not in class_to_id.keys()):
+							class_to_id[str(scalar)] = class_id
+							class_id += 1
+
+						## write in classification file
+						classification_file.write(str(cmpt -1 ) + "," + str(scalar)+ ","+ str(class_to_id[str(scalar)])+"\n")
+					
 					index +=1
 				line_to_write = line_to_write[:-1]
 				output_dataset.write(line_to_write+"\n") 

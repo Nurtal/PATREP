@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-
+import numpy
 
 import representation
 import preprocessing
@@ -35,6 +35,46 @@ def plot_log_file(log_file):
 
 
 
+def save_matrix_to_file(matrix, save_file):
+	##
+	## => Save the content of matrix (wich is a 2d array)
+	## in the file save_file
+	##
+
+	output_file = open(save_file, "w")
+	for vector in matrix:
+		line_to_write = ""
+		for scalar in vector:
+			line_to_write += str(scalar) + ","
+		line_to_write = line_to_write[:-1]
+		output_file.write(line_to_write+"\n")
+	output_file.close()
+
+
+
+def load_matrix_from_file(load_file):
+	##
+	## => Create a matrix from a save_file,
+	## cast the matrix into an numpy array
+	## return the matrix
+	##
+
+	matrix = []
+	input_data = open(load_file, "r")
+	for line in input_data:
+		vector = []
+		line = line.replace("\n", "")
+		line_in_array = line.split(",")
+		for scalar in line_in_array:
+			vector.append(float(scalar))
+		matrix.append(vector)
+	input_data.close()
+
+	matrix = numpy.array(matrix)
+
+	return matrix
+
+
 
 ###------------###
 ### TEST SPACE ###
@@ -46,10 +86,10 @@ def plot_log_file(log_file):
 #plot_log_file("learning_optimal_grid.log")
 
 ## Test on real external dataset
-"""
 preprocessing.reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
 preprocessing.normalize_data("datasets/creditcard_reduce_reformated.csv")
-image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 500)
+image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 5)
+save_matrix_to_file(image_structure, "credit_image_structure.csv")
 representation.simple_conversion_to_img_matrix("datasets/creditcard_reduce_reformated_scaled.csv")
 representation.build_patient_representation("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
 real_data = representation.build_patient_matrix("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
@@ -57,10 +97,10 @@ real_data = representation.build_patient_matrix("datasets/creditcard_reduce_refo
 classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
 
 plot_log_file("learning_optimal_grid.log")
-"""
 
 
 ## Test on HLA data
+"""
 preprocessing.reformat_input_datasets("datasets/HLA_data_clean.csv", 562, True)
 preprocessing.normalize_data("datasets/HLA_data_clean_reformated.csv")
 image_structure = representation.build_image_map("datasets/HLA_data_clean_reformated_scaled.csv", 125)
@@ -69,3 +109,10 @@ representation.build_patient_representation("datasets//HLA_data_clean_reformated
 real_data = representation.build_patient_matrix("datasets//HLA_data_clean_reformated_scaled_interpolated.csv", image_structure)
 (train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
 classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
+
+plot_log_file("learning_optimal_grid.log")
+"""
+
+
+
+

@@ -97,10 +97,20 @@ def run_CNN(train_X, train_Y, test_X, test_Y, epochs):
 
 	## Model param
 	batch_size = 64
-	#epochs = 2 # used to be 20
-	num_classes = 2
 	input_size_x = len(train_X[0][0])
 	input_size_y = len(train_X[0])
+
+	## get number of classes
+	class_list = []
+	observation_file = open("observations_classification.csv", "r")
+	for line in observation_file:
+		line = line.replace("\n", "")
+		line_in_array = line.split(",")
+		class_id = line_in_array[2]
+		if(class_id not in class_list):
+			class_list.append(class_id)
+	observation_file.close()
+	num_classes = len(class_list)
 
 	## Neural network architecture
 	fashion_model = Sequential()

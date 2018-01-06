@@ -563,7 +563,6 @@ def compute_population_score(dist_mat, population):
 
 
 
-
 def build_image_map(data_file, n_cycles):
 	##
 	## [IN PROGRESS]
@@ -951,10 +950,11 @@ def build_patient_matrix(data_file, map_matrix):
 
 			p_id = line_in_array[0]
 			p_diag = line_in_array[1]
+			p_diag_id = line_in_array[2]
 
 			if(patient_id == int(p_id)+1):
 				p_diag = p_diag.replace("\"", "")
-				data_structure[patient_id][1] = int(p_diag)
+				data_structure[patient_id][1] = int(p_diag_id)
 
 		patient_manifest_file.close()
 		cmpt += 1
