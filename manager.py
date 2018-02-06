@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy
+import os
 
 import representation
 import preprocessing
@@ -86,6 +87,7 @@ def load_matrix_from_file(load_file):
 #plot_log_file("learning_optimal_grid.log")
 
 ## Test on real external dataset
+"""
 preprocessing.reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
 preprocessing.normalize_data("datasets/creditcard_reduce_reformated.csv")
 image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 5)
@@ -95,15 +97,15 @@ representation.build_patient_representation("datasets/creditcard_reduce_reformat
 real_data = representation.build_patient_matrix("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
 (train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
 classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
-
 plot_log_file("learning_optimal_grid.log")
-
+"""
 
 ## Test on HLA data
 """
 preprocessing.reformat_input_datasets("datasets/HLA_data_clean.csv", 562, True)
 preprocessing.normalize_data("datasets/HLA_data_clean_reformated.csv")
-image_structure = representation.build_image_map("datasets/HLA_data_clean_reformated_scaled.csv", 125)
+image_structure = representation.build_image_map("datasets/HLA_data_clean_reformated_scaled.csv", 500)
+save_matrix_to_file(image_structure, "HLA_image_structure_500i.csv")
 representation.simple_conversion_to_img_matrix("datasets//HLA_data_clean_reformated_scaled.csv")
 representation.build_patient_representation("datasets//HLA_data_clean_reformated_scaled_interpolated.csv", image_structure)
 real_data = representation.build_patient_matrix("datasets//HLA_data_clean_reformated_scaled_interpolated.csv", image_structure)
@@ -113,6 +115,57 @@ classification.run_CNN(train_X, train_Y, test_X, test_Y, 20)
 plot_log_file("learning_optimal_grid.log")
 """
 
+## Create grids for HLA data
+## One grid / pathology computed with control
+"""
+iteration_list = [750]
+dataset_list = ["datasets/HLA_data_MCTD.csv", "datasets/HLA_data_PAPs.csv", "datasets/HLA_data_RA.csv", "datasets/HLA_data_SjS.csv", "datasets/HLA_data_SLE.csv", "datasets/HLA_data_SSc.csv", "datasets/HLA_data_UCTD.csv"]
 
+for iteration in iteration_list:
 
+	for dataset in dataset_list:
+		dataset_reformated = dataset.split(".")
+		dataset_reformated = dataset_reformated[0]+"_reformated.csv"
+		dataset_reformated_scaled = dataset_reformated.split(".")
+		dataset_reformated_scaled = dataset_reformated_scaled[0]+"_scaled.csv"
+		save_matrix_name = dataset.split(".")
+		save_matrix_name = save_matrix_name[0]+"_"+str(iteration)+".csv"
 
+		if(not os.path.isfile(save_matrix_name)):
+			preprocessing.reformat_input_datasets(dataset, 562, True)
+			preprocessing.normalize_data(dataset_reformated)
+			image_structure = representation.build_image_map(dataset_reformated_scaled, iteration)
+			save_matrix_to_file(image_structure, save_matrix_name)
+"""
+
+## Perform classification on HLA data, for each disease vs control
+## IN PROGRESS
+"""
+disease_list = ["MCTD", "PAPs", "RA", "SjS", "SLE", "SSc", "UCTD"]
+for disease in disease_list:
+	for iteration in [50, 150, 500, 750]:
+
+		print " => PROCESS [DISEASE]"+ str(disease) +" [MAP ITERATION]"+ str(iteration) +" \n"
+
+		preprocessing.reformat_input_datasets("datasets/HLA_data_"+str(disease)+".csv", 562, True)
+		preprocessing.normalize_data("datasets/HLA_data_"+str(disease)+"_reformated.csv")
+		image_structure = load_matrix_from_file("datasets/HLA_data_"+str(disease)+"_"+str(iteration)+".csv")
+		representation.simple_conversion_to_img_matrix("datasets/HLA_data_"+str(disease)+"_reformated_scaled.csv")
+		representation.build_patient_representation("datasets/HLA_data_"+str(disease)+"_reformated_scaled_interpolated.csv", image_structure)
+		real_data = representation.build_patient_matrix("datasets/HLA_data_"+str(disease)+"_reformated_scaled_interpolated.csv", image_structure)
+		(train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
+		classification.run_CNN(train_X, train_Y, test_X, test_Y, 350)
+
+"""
+
+## Perform Classification on customer data from Kaggle
+preprocessing.reformat_input_datasets("datasets/data_customer_kaggle.csv", 371, True)
+preprocessing.normalize_data("datasets/data_customer_kaggle_reformated.csv")
+image_structure = representation.build_image_map("datasets/data_customer_kaggle_reformated_scaled.csv", 300)
+save_matrix_to_file(image_structure, "data_customer_kaggle_structure.csv")
+representation.simple_conversion_to_img_matrix("datasets/data_customer_kaggle_reformated_scaled.csv")
+representation.build_patient_representation("datasets/data_customer_kaggle_reformated_scaled_interpolated.csv", image_structure)
+real_data = representation.build_patient_matrix("datasets/data_customer_kaggle_reformated_scaled_interpolated.csv", image_structure)
+(train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
+classification.run_CNN(train_X, train_Y, test_X, test_Y, 50)
+plot_log_file("learning_optimal_grid.log")
