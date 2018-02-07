@@ -158,18 +158,21 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 				new_header = ""
 				line_in_array = line.split(",")
 				index = 0
+				last_real_variable_index = -1
 				for variable in line_in_array:
 					if(index != classification_variable_position):
 						new_variable = "variable_"+str(index)
+						last_real_variable_index = index
 						new_header += str(new_variable)+","
 						index_file.write(str(variable) +"," +str(new_variable)+"\n")
 					index += 1
 				
 				## add dead variable to fit a square matrix
+				index = last_real_variable_index + 1
 				for x in xrange(optimal_number_of_variables - number_of_variables):
 					
 					## deal with the index += 1 from last loop
-					new_variable = "variable_"+str(index-1)
+					new_variable = "variable_"+str(index)
 					new_header += str(new_variable)+","
 					index_file.write(str(variable) +"," +str(new_variable)+"\n")
 					index += 1
