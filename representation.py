@@ -68,6 +68,8 @@ def get_correlation_matrix(input_data_file):
 	## Replace NaN by 0
 	correlation_matrix = numpy.where(numpy.isnan(correlation_matrix), numpy.ma.array(correlation_matrix, mask=numpy.isnan(correlation_matrix)).mean(axis=0), correlation_matrix)
 
+	print "choucroute" + str( len(correlation_matrix) )
+
 	return correlation_matrix
 
 
@@ -208,6 +210,7 @@ def init_grid_matrix(corr_mat):
 
 	## Randomy assign a position in the grid to a variable
 	variable_to_position = {}
+	cmpt_assigned = 0 # debug
 	for x in xrange(0,number_of_variables):
 		
 		position_assigned = False
@@ -221,6 +224,8 @@ def init_grid_matrix(corr_mat):
 				variable_to_position[x] = position
 				position_assigned = True
 
+				cmpt_assigned += 1 # debug
+				#print "=> " +str(cmpt_assigned) +" position assigned ["+str(float(float(cmpt_assigned)/float(number_of_variables))*100) +"%]"
 
 	## Write a matrix with the assigned position as coordinates
 	## for the variables
