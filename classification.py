@@ -72,7 +72,47 @@ def extract_data_for_cnn(real_data, train_proportion):
 	return ((train_data_vector_X, train_data_vector_Y), (test_data_vector_X, test_data_vector_Y))
 
 
-def run_CNN(train_X, train_Y, test_X, test_Y, epochs):
+
+def prepare_prediction_dataset_for_cnn(real_data):
+	##
+	## Prepare prediction data for the CNN
+	## based on the extract_data_for_cnn function
+	## but do not care about labels (Y vectors)
+	##
+	## real_data is a data_structure genrated by the 
+	## build_prediction_matrix function from the
+	## representation package
+	##
+
+	## Get data and labels
+	all_data_vector_X = []
+	for observation in real_data.keys():
+		value = real_data[observation]
+		all_data_vector_X.append(value[0])
+
+	## cast vector into numpy array
+	prediction_data_vector_X = numpy.array(all_data_vector_X)
+
+	## convert each matrix of the train and test set
+	## into a matrix of size heigh x width x 1 to be fed into
+	## the network
+	side_size_x = len(prediction_data_vector_X[0][0])
+	side_size_y = len(prediction_data_vector_X[0])
+	prediction_data_vector_X = prediction_data_vector_X.reshape(-1, side_size_x,side_size_y, 1)
+
+	## convert int8 format type to float32
+	## rescale the pixel values in range 0 - 1 inclusive
+	prediction_data_vector_X = prediction_data_vector_X.astype('float32')
+	prediction_data_vector_X = prediction_data_vector_X / 255.
+
+	## return train and test vector with associated labels vector
+	return prediction_data_vector_X
+
+
+
+
+
+def run_CNN(train_X, train_Y, test_X, test_Y, epochs, prediction_set):
 	##
 	## IN PROGRESS
 	##
@@ -139,3 +179,19 @@ def run_CNN(train_X, train_Y, test_X, test_Y, epochs):
 	test_eval = fashion_model.evaluate(test_X, test_Y_one_hot, verbose=0)
 	print('Test loss:', test_eval[0])
 	print('Test accuracy:', test_eval[1])
+
+	## if the prediction dataset is not empty
+	## use the trained network to predict
+	## label on the prediction data, 
+	## write results on a csv file
+	if(len(prediction_set) > 0):
+		predicted_classes = fashion_model.predict(test_X)
+		predicted_classes = numpy.argmax(numpy.round(predicted_classes),axis=1)
+		prediction_results_file = open("prediction_results.csv", "w")
+		cmpt = 0
+		for prediction in predicted_classes:
+			line_to_write = str(cmpt)+","+str(prediction)+"\n"
+			prediction_results_file.write(line_to_write)
+			cmpt += 1
+		prediction_results_file.close()
+

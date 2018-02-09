@@ -965,3 +965,92 @@ def build_patient_matrix(data_file, map_matrix):
 		cmpt += 1
 
 	return data_structure
+
+
+
+
+def build_prediction_matrix(data_file, map_matrix):
+	##
+	## Adapt from build_patient_matrix for prediction dataset (i.e no label for
+	## observations)  
+	##
+	## data_file is usualy the reduce formated scaled interpolated version
+	## of the input data.
+	##
+	## map_matrix is the learned structure of the image.
+	##
+	## return the structure: {patient_id:[matrix]}
+	## where matrix is a representation of the image associated to
+	## the patient.
+	##
+
+
+	## Init variables
+	data_structure = {}
+
+	## get cohorte data
+	index_to_variable = {}
+	cohorte = []
+	input_data = open(data_file, "r")
+	cmpt = 0
+	for line in input_data:
+		patient = {}
+		patient_id = cmpt
+		line = line.replace("\n", "")
+		line_in_array = line.split(",")
+		if(cmpt == 0):
+			index = 0
+			for variable in line_in_array:
+				index_to_variable[index] = variable
+				index += 1
+		else:
+			index = 0
+			for scalar in line_in_array:
+				patient[index_to_variable[index]] = int(scalar)
+				index += 1
+			cohorte.append(patient)
+			data_structure[patient_id] = ["choucroute", "choucroute"]
+		cmpt +=1
+	input_data.close()
+
+	## get map for the image structure
+	variable_to_position = {}
+	for x in xrange(0,len(map_matrix)):
+		vector = map_matrix[x]
+		for y in xrange(0,len(vector)):
+			variable = map_matrix[x][y]
+			position = [x,y]
+			variable_to_position[variable] = position
+
+	## create matrix for each patients in cohorte
+	number_of_variables = len(index_to_variable.keys())
+	side_size = math.sqrt(number_of_variables)
+	side_size = int(side_size)
+	cmpt = 0
+	cohorte_matrix = []
+	for patient in cohorte:
+
+		## init patient grid
+		patient_grid = numpy.zeros(shape=(side_size,side_size))
+		patient_id = cmpt + 1
+
+		## fill the patient grid
+		for variable in index_to_variable.values():
+			
+			## get the variable id from information in the header
+			variable_id = variable.split("_")
+			variable_id = float(variable_id[-1])
+
+			## get variable position in the grid
+			position = variable_to_position[variable_id]
+			position_x = position[0]
+			position_y = position[1]
+
+			## assign corresponding value to the position
+			patient_grid[position_x][position_y] = int(patient[variable])
+
+		## fill data structure
+		data_structure[patient_id][0] = patient_grid
+		cmpt +=1
+
+	return data_structure

@@ -272,3 +272,101 @@ def reformat_input_datasets(input_dataset, classification_variable_position, for
 		classification_file.close()
 		index_file.close()
 		input_dataset.close()
+
+
+
+def reformat_prediction_dataset(input_dataset):
+	##
+	## Based on the reformat_input_datasets function, 
+	## create a "_reformated" file for prediction dataset, 
+	## i.e no target column expected in the input file, 
+	## no manifest_variable and index file generated
+	## in the process
+	##
+
+
+	## get the number of variables
+	number_of_variables = -1
+	input_data = open(input_dataset, "r")
+	cmpt = 0
+	for line in input_data:
+		if(cmpt == 0):
+			line_in_array = line.split(",")
+			number_of_variables = len(line_in_array)
+		cmpt += 1
+	input_data.close()
+
+	## test if we can build a square matrix with that
+	test_value_1 = math.sqrt(number_of_variables)
+	test_value_2 = int(test_value_1)
+	optimal_number_of_variables = number_of_variables
+	if(float(test_value_1 - test_value_2) > 0):
+
+		## find next cool number of variables
+		can_do_something_with_this = False
+		while(not can_do_something_with_this):
+				
+			test_value_1 = math.sqrt(optimal_number_of_variables)
+			test_value_2 = int(test_value_1)
+			if(float(test_value_1 - test_value_2) == 0):
+				can_do_something_with_this = True
+			else:
+				optimal_number_of_variables	+= 1
+
+
+	## Create output file
+	output_dataset_name = input_dataset.split(".")
+	output_dataset_name = output_dataset_name[0]+"_reformated.csv"
+	output_dataset = open(output_dataset_name, "w")
+	input_dataset = open(input_dataset, "r")
+	
+	cmpt = 0
+
+	for line in input_dataset:
+		line = line.replace("\n", "")
+			
+		## create new header
+		## create index file
+		if(cmpt ==0):
+			new_header = ""
+			line_in_array = line.split(",")
+			index = 0
+			last_real_variable_index = -1
+			for variable in line_in_array:
+				new_variable = "variable_"+str(index)
+				last_real_variable_index = index
+				new_header += str(new_variable)+","
+				index += 1
+				
+			## add dead variable to fit a square matrix
+			index = last_real_variable_index + 1
+			for x in xrange(optimal_number_of_variables - number_of_variables):
+					
+				## deal with the index += 1 from last loop
+				new_variable = "variable_"+str(index)
+				new_header += str(new_variable)+","
+				index += 1
+
+			## Write the final header
+			new_header = new_header[:-1]
+			output_dataset.write(new_header+"\n")
+			
+		## fill output file
+		else:
+			line_to_write = ""
+			index = 0
+			line_in_array = line.split(",")
+			for scalar in line_in_array:
+				line_to_write += str(scalar) + ","
+				index +=1
+
+			## add dead variable to fit a square matrix
+			for x in xrange(optimal_number_of_variables - number_of_variables):
+				line_to_write += str(0)+","
+
+			line_to_write = line_to_write[:-1]
+			output_dataset.write(line_to_write+"\n") 
+		cmpt +=1
+
+	output_dataset.close()
+	input_dataset.close()

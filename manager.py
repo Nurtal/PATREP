@@ -159,14 +159,10 @@ for disease in disease_list:
 """
 
 ## Perform Classification on customer data from Kaggle
+"""
 preprocessing.reformat_input_datasets("datasets/data_customer_kaggle.csv", 370, True)
 preprocessing.normalize_data("datasets/data_customer_kaggle_reformated.csv")
 image_structure = representation.build_image_map("datasets/data_customer_kaggle_reformated_scaled.csv", 150)
-
-#preprocessing.reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
-#preprocessing.normalize_data("datasets/creditcard_reduce_reformated.csv")
-#image_structure = representation.build_image_map("datasets/creditcard_reduce_reformated_scaled.csv", 5)
-
 save_matrix_to_file(image_structure, "data_customer_kaggle_structure.csv")
 representation.simple_conversion_to_img_matrix("datasets/data_customer_kaggle_reformated_scaled.csv")
 representation.build_patient_representation("datasets/data_customer_kaggle_reformated_scaled_interpolated.csv", image_structure)
@@ -174,3 +170,27 @@ real_data = representation.build_patient_matrix("datasets/data_customer_kaggle_r
 (train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
 classification.run_CNN(train_X, train_Y, test_X, test_Y, 90)
 plot_log_file("learning_optimal_grid.log")
+"""
+
+
+## Load data structure
+image_structure = load_matrix_from_file("credit_image_structure.csv")
+
+## preapre train data
+preprocessing.reformat_input_datasets("datasets/creditcard_reduce.csv", 30, True)
+preprocessing.normalize_data("datasets/creditcard_reduce_reformated.csv")
+representation.simple_conversion_to_img_matrix("datasets/creditcard_reduce_reformated_scaled.csv")
+representation.build_patient_representation("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
+real_data = representation.build_patient_matrix("datasets/creditcard_reduce_reformated_scaled_interpolated.csv", image_structure)
+(train_X, train_Y), (test_X, test_Y) = classification.extract_data_for_cnn(real_data, 0.72)
+
+## Prepare to predict data
+preprocessing.reformat_prediction_dataset("datasets/credit_to_predict.csv")
+preprocessing.normalize_data("datasets/credit_to_predict_reformated.csv")
+representation.simple_conversion_to_img_matrix("datasets/credit_to_predict_reformated_scaled.csv")
+representation.build_patient_representation("datasets/credit_to_predict_reformated_scaled_interpolated.csv", image_structure)
+prediction_data = representation.build_prediction_matrix("datasets/credit_to_predict_reformated_scaled_interpolated.csv", image_structure)
+prediction_dataset = classification.prepare_prediction_dataset_for_cnn(prediction_data)
+
+## Run CNN
+classification.run_CNN(train_X, train_Y, test_X, test_Y, 2, prediction_dataset)
