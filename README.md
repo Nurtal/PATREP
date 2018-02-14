@@ -10,15 +10,15 @@ Overview
 Dependencies
 ------------
 
-*matplotlib
-*numpy
-*os
-*keras
-*random
-*math
-*sklearn
-*png
-*scipy
-*operator
-*time
+* matplotlib
+* numpy
+* os
+* keras
+* random
+* math
+* sklearn
+* png
+* scipy
+* operator
+* time
 
